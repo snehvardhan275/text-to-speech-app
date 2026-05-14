@@ -1,0 +1,15 @@
+# Docker ignore file to keep image small
+__pycache__
+*.pyc
+*.pyo
+.git
+.gitignore
+*.md
+.venv
+venv
+torch-env2
+static/audio/*.wav
+performance/
+scripts/
+.dockerignore
+docker-compose.yml

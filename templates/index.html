@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Supertonic 3 TTS — Lightweight Text-to-Speech Web App for Cloud, Laptop & Edge Deployment">
+    <title>Supertonic TTS — {{ config.ENV_LABEL }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <!-- ====== MAIN LAYOUT ====== -->
+    <div class="app-container">
+
+        <!-- ---- SIDEBAR: Performance Panel ---- -->
+        <aside id="perf-sidebar" class="perf-sidebar">
+            <div class="sidebar-header">
+                <h2>📊 Performance</h2>
+                <button id="btn-close-sidebar" class="btn-icon" title="Close">✕</button>
+            </div>
+
+            <!-- System Info -->
+            <section class="sidebar-section">
+                <h3>🖥️ System Info</h3>
+                <div id="system-info" class="system-grid">
+                    <p class="loading-text">Loading...</p>
+                </div>
+            </section>
+
+            <!-- Live Metrics -->
+            <section class="sidebar-section">
+                <h3>⚡ Live Metrics</h3>
+                <div class="metric-cards" id="live-metrics">
+                    <div class="metric-card">
+                        <span class="metric-label">CPU</span>
+                        <span class="metric-value" id="live-cpu">—</span>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-label">RAM</span>
+                        <span class="metric-value" id="live-ram">—</span>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-label">Requests</span>
+                        <span class="metric-value" id="live-requests">0</span>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-label">Avg Latency</span>
+                        <span class="metric-value" id="live-avg-latency">—</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Inference History Chart -->
+            <section class="sidebar-section">
+                <h3>📈 Latency History</h3>
+                <div class="chart-container">
+                    <canvas id="latency-chart"></canvas>
+                </div>
+            </section>
+
+            <!-- Performance Log Table -->
+            <section class="sidebar-section">
+                <h3>📋 Inference Log</h3>
+                <div class="log-table-wrapper">
+                    <table class="log-table" id="perf-log-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Time</th>
+                                <th>Latency</th>
+                                <th>Audio</th>
+                                <th>RTF</th>
+                                <th>CPU</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="perf-log-body">
+                            <tr><td colspan="7" class="empty-row">No requests yet</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Load Test Section -->
+            <section class="sidebar-section">
+                <h3>🔥 Load Test</h3>
+                <p class="section-desc">Send burst requests to measure throughput.</p>
+                <div class="load-test-controls">
+                    <label>
+                        Requests:
+                        <input type="number" id="load-count" value="10" min="1" max="100" class="input-small">
+                    </label>
+                    <label>
+                        Concurrency:
+                        <input type="number" id="load-concurrency" value="3" min="1" max="20" class="input-small">
+                    </label>
+                    <button id="btn-load-test" class="btn btn-danger">Run Load Test</button>
+                </div>
+                <div id="load-test-results" class="load-results hidden"></div>
+            </section>
+        </aside>
+
+        <!-- ---- MAIN CONTENT ---- -->
+        <main class="main-content">
+
+            <!-- Top Bar -->
+            <header class="top-bar">
+                <div class="top-bar-left">
+                    <div class="logo">
+                        <span class="logo-icon">🔊</span>
+                        <h1>Supertonic <span class="accent">TTS</span></h1>
+                    </div>
+                    <span class="env-badge" id="env-badge">{{ config.ENV_LABEL }}</span>
+                </div>
+                <div class="top-bar-right">
+                    <span class="status-dot" id="status-dot"></span>
+                    <span id="status-text">Ready</span>
+                    <button id="btn-open-sidebar" class="btn btn-outline" title="Performance Dashboard">
+                        📊 Performance
+                    </button>
+                </div>
+            </header>
+
+            <!-- Hero Section -->
+            <section class="hero">
+                <div class="hero-content">
+                    <h2>Text to Speech <span class="gradient-text">On Any Device</span></h2>
+                    <p class="hero-subtitle">
+                        Powered by <strong>Supertonic 3</strong> — 31 languages, ONNX runtime, zero cloud dependency.
+                        Deployable on <em>Laptop</em>, <em>Cloud</em>, and <em>Edge</em>.
+                    </p>
+                </div>
+            </section>
+
+            <!-- TTS Input Card -->
+            <section class="tts-card glass-card">
+                <div class="card-header">
+                    <h3>✍️ Enter Text</h3>
+                    <div class="card-controls">
+                        <select id="voice-select" class="select-input">
+                            <option value="M1">🗣️ Male (M1)</option>
+                            <option value="F1">🗣️ Female (F1)</option>
+                        </select>
+                        <select id="lang-select" class="select-input">
+                            <option value="en">🇬🇧 English</option>
+                            <option value="es">🇪🇸 Spanish</option>
+                            <option value="fr">🇫🇷 French</option>
+                            <option value="de">🇩🇪 German</option>
+                            <option value="ja">🇯🇵 Japanese</option>
+                            <option value="ko">🇰🇷 Korean</option>
+                            <option value="zh">🇨🇳 Chinese</option>
+                            <option value="hi">🇮🇳 Hindi</option>
+                        </select>
+                    </div>
+                </div>
+
+                <textarea id="tts-input" class="tts-textarea"
+                    placeholder="Type or paste text here to synthesize speech..."
+                    maxlength="{{ config.MAX_TEXT_LENGTH }}">A gentle breeze moved through the open window while everyone listened to the story.</textarea>
+
+                <div class="textarea-footer">
+                    <span id="char-count" class="char-count">0 / {{ config.MAX_TEXT_LENGTH }}</span>
+                    <button id="btn-synthesize" class="btn btn-primary">
+                        <span class="btn-text">🎙️ Synthesize</span>
+                        <span class="btn-loader hidden" id="btn-loader">
+                            <span class="spinner"></span> Processing...
+                        </span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Result Card -->
+            <section id="result-section" class="result-card glass-card hidden">
+                <div class="result-header">
+                    <h3>🔊 Generated Audio</h3>
+                    <div class="result-stats">
+                        <span class="stat-chip" id="stat-latency">⏱️ —</span>
+                        <span class="stat-chip" id="stat-duration">🕐 —</span>
+                        <span class="stat-chip" id="stat-rtf">⚡ —</span>
+                        <span class="stat-chip" id="stat-size">📦 —</span>
+                    </div>
+                </div>
+                <audio id="audio-player" controls class="audio-player"></audio>
+                <div class="result-perf-bar">
+                    <div class="perf-item">
+                        <span class="perf-label">Inference Latency</span>
+                        <div class="perf-bar-track">
+                            <div class="perf-bar-fill" id="perf-bar-latency"></div>
+                        </div>
+                        <span class="perf-val" id="perf-val-latency">—</span>
+                    </div>
+                    <div class="perf-item">
+                        <span class="perf-label">CPU Usage</span>
+                        <div class="perf-bar-track">
+                            <div class="perf-bar-fill perf-bar-cpu" id="perf-bar-cpu"></div>
+                        </div>
+                        <span class="perf-val" id="perf-val-cpu">—</span>
+                    </div>
+                    <div class="perf-item">
+                        <span class="perf-label">RAM Delta</span>
+                        <div class="perf-bar-track">
+                            <div class="perf-bar-fill perf-bar-ram" id="perf-bar-ram"></div>
+                        </div>
+                        <span class="perf-val" id="perf-val-ram">—</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- History -->
+            <section id="history-section" class="history-section">
+                <h3>📜 Recent Generations</h3>
+                <div id="history-list" class="history-list">
+                    <p class="empty-history">Your generated audio will appear here.</p>
+                </div>
+            </section>
+
+            <!-- Footer -->
+            <footer class="app-footer">
+                <p>
+                    Supertonic TTS v{{ config.VERSION }} &middot;
+                    <span id="footer-env">{{ config.ENV_NAME }}</span> &middot;
+                    Built with Flask + ONNX Runtime
+                </p>
+            </footer>
+        </main>
+    </div>
+
+    <!-- Chart.js CDN (lightweight) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

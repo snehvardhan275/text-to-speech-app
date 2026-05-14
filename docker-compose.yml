@@ -1,0 +1,27 @@
+# ============================================================
+# Docker Compose — TTS Web App (Cloud Deployment)
+# ============================================================
+# Usage:
+#   docker-compose up --build        (foreground)
+#   docker-compose up --build -d     (background)
+#   docker-compose down              (stop)
+
+services:
+  tts-webapp:
+    build: .
+    container_name: tts-webapp-cloud
+    ports:
+      - "8080:8080"
+    environment:
+      - TTS_ENV=CLOUD
+      - PORT=8080
+      - WORKERS=4
+    volumes:
+      # Persist generated audio (optional)
+      - ./static/audio:/app/static/audio
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: "2.0"

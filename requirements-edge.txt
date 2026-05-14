@@ -1,0 +1,21 @@
+# ====================================
+# TTS Web App — Edge (Raspberry Pi) Requirements
+# Lighter dependencies optimized for ARM
+# ====================================
+
+# Web Framework
+flask==3.1.1
+flask-cors==5.0.1
+
+# TTS Model
+supertonic
+
+# System Monitoring
+psutil==7.0.0
+
+# ONNX Runtime (ARM-optimized — works on Raspberry Pi)
+# On Raspberry Pi, install via:
+#   pip install onnxruntime
+# If that fails, try the pre-built ARM wheel:
+#   pip install --extra-index-url https://google-coral.github.io/py-repo/ onnxruntime
+onnxruntime
