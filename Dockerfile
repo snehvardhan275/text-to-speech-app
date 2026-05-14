@@ -24,6 +24,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# --- ADD THIS LINE TO PRE-DOWNLOAD THE MODEL ---
+RUN python -c "from supertonic import TTS; TTS(auto_download=True)"
+
+
+
 # Copy application code
 COPY . .
 

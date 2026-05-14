@@ -261,6 +261,14 @@ cleanup_thread.start()
 # ---------------------------------------------------------------------------
 APP_START_TIME = time.time()
 
+# At the very bottom of app.py, before app.run()
+with app.app_context():
+    try:
+        print("Pre-loading model for production...")
+        get_tts_model()
+    except Exception as e:
+        print(f"Model pre-load failed (will retry on first request): {e}")
+
 if __name__ == "__main__":
     env = detect_environment()
     print(f"\n{'='*60}")
